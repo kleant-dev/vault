@@ -6,8 +6,10 @@ namespace VaultGuardApi.Controllers;
 
 [ApiController]
 [Route("")]
-public sealed class HomeController: ControllerBase
+public sealed class HomeController(IWebHostEnvironment env) : ControllerBase
 {
+    private readonly IWebHostEnvironment _env = env;
+
     public async Task<IActionResult>  Get()
     {
         List<User> users = [
@@ -31,11 +33,12 @@ public sealed class HomeController: ControllerBase
             Age = 25
         }
         ];
+        string filePath = Path.Combine(_env.WebRootPath, "content.txt");
         var blobUri = new Uri("https://kleostorage.blob.core.windows.net");
         var blobServiceClient = new BlobServiceClient(blobUri,new DefaultAzureCredential());
         var containerClient = blobServiceClient.GetBlobContainerClient("blobs");
         var blobClient = containerClient.GetBlobClient($"file-{Guid.NewGuid()}");
-        await blobClient.UploadAsync("/home/kleo/Desktop/Development/Azure/VaultGuardApi/wwwroot/content.txt",overwrite:true);
+        await blobClient.UploadAsync(filePath,overwrite:true);
         return Ok(users);
     }
 }
