@@ -10,35 +10,27 @@ public sealed class HomeController(IWebHostEnvironment env) : ControllerBase
 {
     private readonly IWebHostEnvironment _env = env;
 
-    public async Task<IActionResult>  Get()
+    [HttpGet]
+    public async Task<IActionResult> Get()
     {
         List<User> users = [
-        new()
-        {
-            Name = "Kleant",
-            Surname = "Bajraktari",
-            Age = 18
-        },
-        
-        new()
-        {
-            Name = "Test",
-            Surname = "User",
-            Age = 20
-        },
-        new()
-        {
-            Name = "Test2",
-            Surname = "User2",
-            Age = 25
-        }
+            new() { Name = "Kleant", Surname = "Bajraktari", Age = 19 },
+            new() { Name = "Test", Surname = "User", Age = 20 }
         ];
-        string filePath = Path.Combine(_env.WebRootPath, "content.txt");
+
+        var csvContent = string.Join("\n", users.Select(u => $"{u.Name},{u.Surname},{u.Age}"));
+    
+        using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(csvContent));
+
         var blobUri = new Uri("https://kleostorage.blob.core.windows.net");
-        var blobServiceClient = new BlobServiceClient(blobUri,new DefaultAzureCredential());
+        var blobServiceClient = new BlobServiceClient(blobUri, new DefaultAzureCredential());
         var containerClient = blobServiceClient.GetBlobContainerClient("blobs");
-        var blobClient = containerClient.GetBlobClient($"file-{Guid.NewGuid()}");
-        await blobClient.UploadAsync(filePath,overwrite:true);
+    
+        await containerClient.CreateIfNotExistsAsync();
+
+        var blobClient = containerClient.GetBlobClient($"users-{Guid.NewGuid()}.csv");
+        await blobClient.UploadAsync(stream, overwrite: true);
+
         return Ok(users);
     }
 }
