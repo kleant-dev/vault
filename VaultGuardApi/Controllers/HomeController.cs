@@ -35,7 +35,7 @@ public sealed class HomeController: ControllerBase
         var blobServiceClient = new BlobServiceClient(blobUri,new DefaultAzureCredential());
         var containerClient = blobServiceClient.GetBlobContainerClient("blobs");
         var blobClient = containerClient.GetBlobClient($"file-{Guid.NewGuid()}");
-        await blobClient.UploadAsync("../../wwwroot/content.txt",overwrite:true);
+        await blobClient.UploadAsync("/home/kleo/Desktop/Development/Azure/VaultGuardApi/wwwroot/content.txt",overwrite:true);
         return Ok(users);
     }
 }
